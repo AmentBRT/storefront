@@ -4,10 +4,8 @@ from store.models import Collection
 
 def say_hello(request):
     collection = Collection(pk=11)
-    collection.title = 'Games'
-    collection.featured_product = None
-    collection.save()
+    collection.delete()
 
-    collection = Collection.objects.filter(pk=11).update(featured_product=None)
+    Collection.objects.filter(pk__ft=5).delete()
 
     return render(request, 'hello.html', {'name': 'Mosh', 'collection': collection})
