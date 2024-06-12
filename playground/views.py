@@ -1,11 +1,12 @@
 from django.shortcuts import render
-from store.models import Collection
+from django.db import transaction
+from store.models import Order, OrderItem
 
 
 def say_hello(request):
-    collection = Collection(pk=11)
-    collection.delete()
+    with transaction.atomic():
+        order = Order.objects.create(customer_id=1)
 
-    Collection.objects.filter(pk__ft=5).delete()
+        order_item = OrderItem.objects.create(order=order, product_id=1, quantity=1, unit_price=10)
 
-    return render(request, 'hello.html', {'name': 'Mosh', 'collection': collection})
+    return render(request, 'hello.html', {'name': 'Mosh', 'order': order})
