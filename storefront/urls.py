@@ -1,8 +1,7 @@
-"""
-URL configuration for storefront project.
+"""storefront URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.0/topics/http/urls/
+    https://docs.djangoproject.com/en/3.2/topics/http/urls/
 Examples:
 Function views
     1. Add an import:  from my_app import views
@@ -16,9 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-
 import debug_toolbar
 
+
+admin.site.site_header = 'Storefront Admin'
+admin.site.index_title = 'Admin'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
