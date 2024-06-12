@@ -1,9 +1,8 @@
 from django.shortcuts import render
-from store.models import Product
-from tags.models import TaggedItem
+from store.models import Collection
 
 
 def say_hello(request):
-    queryset = TaggedItem.objects.get_tags_for(Product, 1)
+    collection = Collection.objects.create(title='Video Game', featured_product_id=1)
 
-    return render(request, 'hello.html', {'name': 'Mosh', 'tags': list(queryset)})
+    return render(request, 'hello.html', {'name': 'Mosh', 'collection': collection})
