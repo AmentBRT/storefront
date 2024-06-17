@@ -9,7 +9,7 @@ from django.urls import reverse
 from . import models
 
 
-class InventoryFileter(admin.SimpleListFilter):
+class InventoryFilter(admin.SimpleListFilter):
     title = 'inventory'
     parameter_name = 'inventory'
 
@@ -34,7 +34,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_editable = ['unit_price']
     list_per_page = 10
     list_select_related = ['collection']
-    list_filter = ['collection', 'last_update', InventoryFileter]
+    list_filter = ['collection', 'last_update', InventoryFilter]
     search_fields = ['title']
 
     def collection_title(self, product):
@@ -64,16 +64,28 @@ class CustomerAdmin(admin.ModelAdmin):
     ordering = ['first_name', 'last_name']
     search_fields = ['first_name__istartswith', 'last_name__istartswith']
 
+    @admin.display(ordering='orders_count')
     def orders(self, customer):
-        return list(customer.order_set.all())
+        url = (
+            reverse('admin:store_order_changelist')
+            + '?'
+            + urlencode({
+                'customer__id': str(customer.id)
+            })
+        )
+        return format_html('<a href="{}">{} Orders</a>', url, customer.orders_count)
 
-    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
-        return super().get_queryset(request).prefetch_related('order_set')
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(
+            orders_count=Count('order')
+        )
 
 
-class OrderItemInline(admin.StackedInline):
+class OrderItemInline(admin.TabularInline):
     autocomplete_fields = ['product']
     model = models.OrderItem
+    min_num = 1
+    max_num = 10
     extra = 0
 
 
@@ -87,6 +99,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(models.Collection)
 class CollectionAdmin(admin.ModelAdmin):
+    autocomplete_fields = ['featured_product']
     list_display = ['title', 'products_count']
     search_fields = ['title']
 
