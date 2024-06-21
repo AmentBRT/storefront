@@ -62,7 +62,29 @@ def collection_list(request):
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-@api_view()
+@api_view(['GET', 'PUT', 'DELETE'])
 def collection_detail(request, id):
+    collection = get_object_or_404(
+        Collection.objects.select_related('featured_product').annotate(products_count=Count('product')),
+        id=id,
+    )
 
-    return Response('ok')
+    if request.method == 'GET':
+        serializer = CollectionSerializer(collection)
+
+        return Response(serializer.data)
+
+    if request.method == 'PUT':
+        serializer = CollectionSerializer(collection, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
+
+    if collection.products.count() > 0:
+        return Response(
+            {'error': 'Collection can not be deleted because it is associated with a Product.'},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+    collection.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
