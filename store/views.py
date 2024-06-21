@@ -37,7 +37,7 @@ def product_detail(request, id):
 
         return Response(serializer.data)
 
-    if product.orderitem_set.count() > 0:
+    if product.orderitems.count() > 0:
         return Response(
             {'error': 'Product can not be deleted because it is associated with an order item.'},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
