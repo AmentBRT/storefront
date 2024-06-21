@@ -50,7 +50,7 @@ def product_detail(request, id):
 @api_view(['GET', 'POST'])
 def collection_list(request):
     if request.method == 'GET':
-        queryset = Collection.objects.select_related('featured_product').annotate(products_count=Count('product')).all()
+        queryset = Collection.objects.select_related('featured_product').annotate(products_count=Count('products')).all()
         serializer = CollectionSerializer(queryset, many=True)
 
         return Response(serializer.data)
@@ -65,7 +65,7 @@ def collection_list(request):
 @api_view(['GET', 'PUT', 'DELETE'])
 def collection_detail(request, id):
     collection = get_object_or_404(
-        Collection.objects.select_related('featured_product').annotate(products_count=Count('product')),
+        Collection.objects.select_related('featured_product').annotate(products_count=Count('products')),
         id=id,
     )
 
