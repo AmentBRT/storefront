@@ -2,7 +2,7 @@ from django.db.models import Count
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, UpdateModelMixin
+from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, ListModelMixin
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
@@ -14,8 +14,8 @@ from .serializers import ProductSerializer, \
     CollectionSerializer, ReviewSerializer, \
     CartSerializer, CartItemSerializer, \
     AddCartItemSerializer, UpdateCartItemSerializer, \
-    CustomerSerializer
-from .models import Product, Collection, OrderItem, Review, Cart, CartItem, Customer
+    CustomerSerializer, OrderSerializer
+from .models import Product, Collection, OrderItem, Review, Cart, CartItem, Customer, Order
 from .permissions import IsAdminOrReadOnly, ViewCustomerHistoryPermission
 from .pagination import DefaultPagination
 from .filters import ProductFilter
@@ -91,7 +91,7 @@ class CartItemViewSet(ModelViewSet):
         return {'cart_id': self.kwargs['cart_id']}
 
 
-class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
+class CustomerViewSet(ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -114,3 +114,8 @@ class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Ge
     @action(detail=True, permission_classes=[ViewCustomerHistoryPermission])
     def history(self, request, id):
         return Response('ok')
+
+
+class OrderViewSet(ModelViewSet):
+    queryset = Order.objects.prefetch_related('items__product').all()
+    serializer_class = OrderSerializer
