@@ -22,7 +22,7 @@ class ProductDetail(RetrieveUpdateDestroyAPIView):
 
     def delete(self, request, id):
         product = get_object_or_404(Product, id=id)
-        if product.orderitems.count() > 0:
+        if product.orderitems.exists():
             return Response(
                 {'error': 'Product can not be deleted because it is associated with an order item.'},
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
