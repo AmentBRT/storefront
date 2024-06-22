@@ -69,4 +69,4 @@ class CartItemViewSet(ModelViewSet):
     lookup_field = 'id'
 
     def get_queryset(self):
-        return CartItem.objects.filter(cart__id=self.kwargs['cart_id'])
+        return CartItem.objects.select_related('product').filter(cart__id=self.kwargs['cart_id'])
