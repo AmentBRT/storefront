@@ -2,13 +2,16 @@ from django.db.models import Count
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, ListModelMixin
+from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyModelMixin
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from rest_framework import status
 
-from .serializers import ProductSerializer, CollectionSerializer, ReviewSerializer, CartSerializer, CartItemSerializer, AddCartItemSerializer
+from .serializers import ProductSerializer, \
+    CollectionSerializer, ReviewSerializer, \
+    CartSerializer, CartItemSerializer, \
+    AddCartItemSerializer, UpdateCartItemSerializer
 from .models import Product, Collection, OrderItem, Review, Cart, CartItem
 from .filters import ProductFilter
 from .pagination import DefaultPagination
@@ -65,11 +68,14 @@ class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Gener
 
 
 class CartItemViewSet(ModelViewSet):
+    http_method_names = ['get', 'post', 'patch', 'delete']
     lookup_field = 'id'
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return AddCartItemSerializer
+        if self.request.method == 'PATCH':
+            return UpdateCartItemSerializer
         return CartItemSerializer
 
     def get_queryset(self):
