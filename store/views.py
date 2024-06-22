@@ -37,29 +37,18 @@ class CollectionList(ListCreateAPIView):
     serializer_class = CollectionSerializer
 
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def collection_detail(request, id):
-    collection = get_object_or_404(
-        Collection.objects.select_related('featured_product').annotate(products_count=Count('products')),
-        id=id,
-    )
+class CollectionDetail(RetrieveUpdateDestroyAPIView):
+    queryset = Collection.objects.select_related('featured_product') \
+        .annotate(products_count=Count('products'))
+    serializer_class = CollectionSerializer
+    lookup_field = 'id'
 
-    if request.method == 'GET':
-        serializer = CollectionSerializer(collection)
-
-        return Response(serializer.data)
-
-    if request.method == 'PUT':
-        serializer = CollectionSerializer(collection, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(serializer.data)
-
-    if collection.products.count() > 0:
-        return Response(
-            {'error': 'Collection can not be deleted because it is associated with a Product.'},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
-    collection.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete(self, request, id):
+        collection = get_object_or_404(Collection, id=id)
+        if collection.products.count() > 0:
+            return Response(
+                {'error': 'Collection can not be deleted because it is associated with a Product.'},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            )
+        collection.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
