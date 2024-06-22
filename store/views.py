@@ -16,7 +16,7 @@ from .serializers import ProductSerializer, \
     AddCartItemSerializer, UpdateCartItemSerializer, \
     CustomerSerializer
 from .models import Product, Collection, OrderItem, Review, Cart, CartItem, Customer
-from .permissions import IsAdminOrReadOnly
+from .permissions import IsAdminOrReadOnly, ViewCustomerHistoryPermission
 from .pagination import DefaultPagination
 from .filters import ProductFilter
 
@@ -95,6 +95,7 @@ class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Ge
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
     permission_classes = [IsAdminOrReadOnly]
+    lookup_field = 'id'
 
     @action(detail=False, methods=['GET', 'PUT'], permission_classes=[IsAuthenticated])
     def me(self, request):
@@ -109,3 +110,7 @@ class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Ge
         serializer.save()
 
         return Response(serializer.data)
+
+    @action(detail=True, permission_classes=[ViewCustomerHistoryPermission])
+    def history(self, request, id):
+        return Response('ok')
