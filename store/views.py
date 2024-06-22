@@ -16,19 +16,21 @@ from .serializers import ProductSerializer, \
     AddCartItemSerializer, UpdateCartItemSerializer, \
     CustomerSerializer
 from .models import Product, Collection, OrderItem, Review, Cart, CartItem, Customer
-from .filters import ProductFilter
+from .permissions import IsAdminOrReadOnly
 from .pagination import DefaultPagination
+from .filters import ProductFilter
 
 
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    lookup_field = 'id'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = ProductFilter
     pagination_class = DefaultPagination
+    permission_classes = [IsAdminOrReadOnly]
     search_fields = ['title', 'description']
     ordering_fields = ['unit_price', 'last_update']
+    lookup_field = 'id'
 
     def destroy(self, request, *args, **kwargs):
         if OrderItem.objects.filter(product__id=kwargs['id']).exists():
@@ -42,6 +44,7 @@ class ProductViewSet(ModelViewSet):
 class CollectionViewSet(ModelViewSet):
     queryset = Collection.objects.annotate(products_count=Count('products'))
     serializer_class = CollectionSerializer
+    permission_classes = [IsAdminOrReadOnly]
     lookup_field = 'id'
 
     def destroy(self, request, *args, **kwargs):
@@ -91,9 +94,9 @@ class CartItemViewSet(ModelViewSet):
 class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrReadOnly]
 
-    @action(detail=False, methods=['GET', 'PUT'])
+    @action(detail=False, methods=['GET', 'PUT'], permission_classes=[IsAuthenticated])
     def me(self, request):
         customer, _ = Customer.objects.get_or_create(user_id=request.user.id)
         if request.method == 'GET':
