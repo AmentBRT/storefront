@@ -156,6 +156,12 @@ SIMPLE_JWT = {
    'AUTH_HEADER_TYPES': ['JWT'],
 }
 
+DJOSER = {
+    'SERIALIZERS': {
+        'user_create': 'core.serializers.UserCreateSerializer',
+    },
+}
+
 # Customizing authentication in Django
 # https://docs.djangoproject.com/en/5.0/topics/auth/customizing/
 
