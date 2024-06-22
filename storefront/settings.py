@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'store',
     'tags',
     'likes',
-    'store_custom',
+    'core',
 ]
 
 MIDDLEWARE = [
@@ -138,6 +138,14 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Django REST framework
+# https://www.django-rest-framework.org/
+
 REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False,
 }
+
+# Customizing authentication in Django
+# https://docs.djangoproject.com/en/5.0/topics/auth/customizing/
+
+AUTH_USER_MODEL = 'core.User'
