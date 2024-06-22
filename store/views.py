@@ -8,6 +8,7 @@ from rest_framework import status
 
 from .models import Product, Collection, OrderItem, Review
 from .serializers import ProductSerializer, CollectionSerializer, ReviewSerializer
+from .filters import ProductFilter
 
 
 class ProductViewSet(ModelViewSet):
@@ -15,7 +16,7 @@ class ProductViewSet(ModelViewSet):
     serializer_class = ProductSerializer
     lookup_field = 'id'
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['collection']
+    filterset_class = ProductFilter
 
     def destroy(self, request, *args, **kwargs):
         if OrderItem.objects.filter(product__id=kwargs['id']).exists():
