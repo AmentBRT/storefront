@@ -2,14 +2,14 @@ from django.db.models import Count
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyModelMixin
+from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, ListModelMixin
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from rest_framework import status
 
-from .serializers import ProductSerializer, CollectionSerializer, ReviewSerializer, CartSerializer
-from .models import Product, Collection, OrderItem, Review, Cart
+from .serializers import ProductSerializer, CollectionSerializer, ReviewSerializer, CartSerializer, CartItemSerializer
+from .models import Product, Collection, OrderItem, Review, Cart, CartItem
 from .filters import ProductFilter
 from .pagination import DefaultPagination
 
@@ -52,7 +52,7 @@ class ReviewViewSet(ModelViewSet):
     lookup_field = 'id'
 
     def get_queryset(self):
-        return Review.objects.filter(product_id=self.kwargs['product_id'])
+        return Review.objects.filter(product__id=self.kwargs['product_id'])
 
     def get_serializer_context(self):
         return {'product_id': self.kwargs['product_id']}
@@ -61,3 +61,12 @@ class ReviewViewSet(ModelViewSet):
 class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
     queryset = Cart.objects.prefetch_related('items__product').all()
     serializer_class = CartSerializer
+    lookup_field = 'id'
+
+
+class CartItemViewSet(ModelViewSet):
+    serializer_class = CartItemSerializer
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return CartItem.objects.filter(cart__id=self.kwargs['cart_id'])
