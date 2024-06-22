@@ -45,7 +45,7 @@ class CollectionDetail(RetrieveUpdateDestroyAPIView):
 
     def delete(self, request, id):
         collection = get_object_or_404(Collection, id=id)
-        if collection.products.count() > 0:
+        if collection.products.exists():
             return Response(
                 {'error': 'Collection can not be deleted because it is associated with a Product.'},
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
