@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'djoser',
     'django_filters',
     'playground',
     'debug_toolbar',
@@ -143,6 +144,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False,
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}
+
+# DRF Simple JWT
+# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/
+
+SIMPLE_JWT = {
+   'AUTH_HEADER_TYPES': ['JWT'],
 }
 
 # Customizing authentication in Django
