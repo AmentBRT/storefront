@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from rest_framework import serializers
 
 from decimal import Decimal
@@ -70,11 +72,12 @@ class AddCartItemSerializer(serializers.ModelSerializer):
         product_id = self.validated_data['product_id']
         quantity = self.validated_data['quantity']
 
-        self.instance, created = CartItem.objects.get_or_create(cart_id=cart_id, product_id=product_id, defaults={'quantity': quantity})
+        with transaction.atomic():
+            self.instance, created = CartItem.objects.get_or_create(cart_id=cart_id, product_id=product_id, defaults={'quantity': quantity})
 
-        if not created:
-            self.instance.quantity += quantity
-            self.instance.save()
+            if not created:
+                self.instance.quantity += quantity
+                self.instance.save()
 
         return self.instance
 
@@ -120,3 +123,43 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['id', 'customer', 'placed_at', 'payment_status', 'items']
+
+
+class CreateOrderSerializer(serializers.Serializer):
+    cart_id = serializers.UUIDField()
+
+    def save(self, **kwargs):
+        user_id = self.context["user_id"]
+        cart_id = self.validated_data['cart_id']
+
+        with transaction.atomic():
+            customer_id, _ = Customer.objects.only('id').get_or_create(user_id=user_id)
+            order = Order.objects.prefetch_related('items').get(customer_id=customer_id)
+
+            cart_items = CartItem.objects.select_related('product').only('product', 'quantity').filter(cart_id=cart_id)
+            order_items = order.items.select_related('product').only('product__id', 'product__unit_price', 'quantity').all()
+
+            order_create_items = []
+            order_update_items = []
+            for item in cart_items:
+                for order_item in order_items:
+                    if item.product.id == order_item.product.id and \
+                       item.product.unit_price == order_item.product.unit_price:
+                        order_item.quantity += item.quantity
+                        order_update_items.append(order_item)
+                        break
+                else:
+                    order_item = OrderItem(
+                        order=order,
+                        product=item.product,
+                        unit_price=item.product.unit_price,
+                        quantity=item.quantity,
+                    )
+                    order_create_items.append(order_item)
+
+            OrderItem.objects.bulk_create(order_create_items)
+            OrderItem.objects.bulk_update(order_update_items, ['quantity'])
+
+            Cart.objects.get(id=cart_id).delete()
+
+        return order
