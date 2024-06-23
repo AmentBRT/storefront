@@ -90,16 +90,19 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.PROTECT, related_name='orderitems')
-    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='orderitems')
+    order = models.ForeignKey(Order, on_delete=models.PROTECT, related_name='items')
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='items')
     quantity = models.PositiveSmallIntegerField()
     unit_price = models.DecimalField(max_digits=6, decimal_places=2)
+
+    # class Meta:
+    #     unique_together = [['order', 'product', 'unit_price']]
 
 
 class Address(models.Model):
     street = models.CharField(max_length=255)
     city = models.CharField(max_length=255)
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE,  related_name='addresses')
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='addresses')
 
 
 class Cart(models.Model):
