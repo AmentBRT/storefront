@@ -142,7 +142,7 @@ class CreateOrderSerializer(serializers.Serializer):
         cart_id = self.validated_data['cart_id']
 
         with transaction.atomic():
-            customer, _ = Customer.objects.only('id').get_or_create(user_id=user_id)
+            customer = Customer.objects.only('id').get(user_id=user_id)
             order = Order.objects.create(customer_id=customer.id)
 
             cart_items = CartItem.objects.select_related('product').only('product', 'quantity').filter(cart_id=cart_id)
