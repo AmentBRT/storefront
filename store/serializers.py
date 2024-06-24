@@ -128,37 +128,35 @@ class OrderSerializer(serializers.ModelSerializer):
 class CreateOrderSerializer(serializers.Serializer):
     cart_id = serializers.UUIDField()
 
+    def validate_cart_id(self, value):
+        if not Cart.objects.filter(id=value).exists():
+            raise serializers.ValidationError('No cart with the given ID was found.')
+
+        if not CartItem.objects.filter(cart_id=value).exists():
+            raise serializers.ValidationError('The cart is empty')
+
+        return value
+
     def save(self, **kwargs):
         user_id = self.context["user_id"]
         cart_id = self.validated_data['cart_id']
 
         with transaction.atomic():
-            customer_id, _ = Customer.objects.only('id').get_or_create(user_id=user_id)
-            order = Order.objects.prefetch_related('items').get(customer_id=customer_id)
+            customer, _ = Customer.objects.only('id').get_or_create(user_id=user_id)
+            order = Order.objects.create(customer_id=customer.id)
 
             cart_items = CartItem.objects.select_related('product').only('product', 'quantity').filter(cart_id=cart_id)
-            order_items = order.items.select_related('product').only('product__id', 'product__unit_price', 'quantity').all()
 
-            order_create_items = []
-            order_update_items = []
-            for item in cart_items:
-                for order_item in order_items:
-                    if item.product.id == order_item.product.id and \
-                       item.product.unit_price == order_item.product.unit_price:
-                        order_item.quantity += item.quantity
-                        order_update_items.append(order_item)
-                        break
-                else:
-                    order_item = OrderItem(
-                        order=order,
-                        product=item.product,
-                        unit_price=item.product.unit_price,
-                        quantity=item.quantity,
-                    )
-                    order_create_items.append(order_item)
+            order_items = [
+                OrderItem(
+                    order=order,
+                    product=item.product,
+                    unit_price=item.product.unit_price,
+                    quantity=item.quantity,
+                ) for item in cart_items
+            ]
 
-            OrderItem.objects.bulk_create(order_create_items)
-            OrderItem.objects.bulk_update(order_update_items, ['quantity'])
+            OrderItem.objects.bulk_create(order_items)
 
             Cart.objects.get(id=cart_id).delete()
 
