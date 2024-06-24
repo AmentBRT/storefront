@@ -10,13 +10,14 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 
-from .serializers import ProductSerializer, \
-    CollectionSerializer, \
-    ReviewSerializer, \
-    CartSerializer, CartItemSerializer, \
-    AddCartItemSerializer, UpdateCartItemSerializer, \
-    CustomerSerializer, \
-    OrderSerializer, CreateOrderSerializer
+from .serializers import (
+    ProductSerializer,
+    CollectionSerializer,
+    ReviewSerializer,
+    CartSerializer, CartItemSerializer, AddCartItemSerializer, UpdateCartItemSerializer,
+    CustomerSerializer,
+    OrderSerializer, CreateOrderSerializer, UpdateOrderSerializer,
+)
 from .models import Product, Collection, OrderItem, Review, Cart, CartItem, Customer, Order
 from .permissions import IsAdminOrReadOnly, ViewCustomerHistoryPermission
 from .pagination import DefaultPagination
@@ -135,6 +136,9 @@ class OrderViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return CreateOrderSerializer
+        
+        if self.request.method == 'PATCH':
+            return UpdateOrderSerializer
         
         return OrderSerializer
     
